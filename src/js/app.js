@@ -15,8 +15,8 @@ $(document).ready(function () {
         let param_name = $('#Param_name').val();
         let param_value = $('#Param_value').val();
         input_vector.set(param_name, param_value);
-        $('#Param_name').val("");
-        $('#Param_value').val("");
+        $('#Param_name').val('');
+        $('#Param_value').val('');
     });
 }
 

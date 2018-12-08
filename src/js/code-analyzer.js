@@ -17,9 +17,9 @@ const parseCode = (codeToParse) => {
 
 
 export function traverse(jsonObj) {
-    console.log(jsonObj);
+    //console.log(jsonObj);
     let program = Program(jsonObj);
-    console.log(program);
+    //console.log(program);
     return escodegen.generate(program).fontsize(4);
 }
 
@@ -35,10 +35,10 @@ function Program(program) {
 
 function Statement(statement) {
     switch (statement.type) {
-        case 'ExpressionStatement': return ExpressionStatement(statement);
-        case 'ReturnStatement': return ReturnStatement(statement);
-        case 'BlockStatement': return BlockStatement(statement);
-        default: return ConditionStatement(statement);
+    case 'ExpressionStatement': return ExpressionStatement(statement);
+    case 'ReturnStatement': return ReturnStatement(statement);
+    case 'BlockStatement': return BlockStatement(statement);
+    default: return ConditionStatement(statement);
     }
 }
 

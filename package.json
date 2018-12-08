@@ -27,6 +27,7 @@
         "esprima-eval": "0.0.1",
         "esprima-walk": "^0.1.0",
         "jquery": "^3.3.1",
+        "lint": "^1.1.2",
         "static-eval": "^2.0.0"
     },
     "devDependencies": {
