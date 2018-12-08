@@ -17,21 +17,25 @@ const parseCode = (codeToParse) => {
 
 
 export function traverse(jsonObj) {
-    //console.log(jsonObj);
+    console.log(jsonObj);
     let program = Program(jsonObj);
-    //console.log(program);
+    console.log(program);
     return escodegen.generate(program).fontsize(4);
 }
 
 function Program(program) {
     return {
         type: 'Program',
-        body: FunctionDeclarations(program.body),
+        body: filtered(StatementListItem(program.body)),
         sourceType: 'script',
     };
 }
 
 /*********** Statements ***********/
+function StatementListItem(body) {
+    
+    return body.map((p) => Statement(p));
+}
 
 function Statement(statement) {
     switch (statement.type) {
@@ -54,12 +58,13 @@ function ConditionStatement(statement) {
 function DeclarationStatement(statement) {
     switch (statement.type) {
         case 'VariableDeclaration': return VariableDeclaration(statement);
-        case 'FunctionDeclaration ': return FunctionDeclaration(statement);
+        case 'FunctionDeclaration': return FunctionDeclaration(statement);
         default: null;
     }
 }
 
 function FunctionDeclaration(functionDeclaration) {
+   
     return {
         type: 'FunctionDeclaration',
         id: Identifier(functionDeclaration.id),
@@ -79,6 +84,7 @@ function VariableDeclaration(declaration) {
         kind: declaration.kind,
     }
     handleDeclarations(declarations);
+    return null;
 }
 
 function handleDeclarations(declarations) {
@@ -289,10 +295,7 @@ function UpdateExpression(expression) {
 
 //*********** Utils ***********/
 
-function FunctionDeclarations(functions) {
-    return functions.map((p) => FunctionDeclaration(p));
 
-}
 function FunctionParameter(params) {
 
     return params.map((p) => Param(p));
