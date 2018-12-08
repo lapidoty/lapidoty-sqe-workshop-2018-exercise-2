@@ -17,9 +17,9 @@ const parseCode = (codeToParse) => {
 
 
 export function traverse(jsonObj) {
-    console.log(jsonObj);
+   // console.log(jsonObj);
     let program = Program(jsonObj);
-    console.log(program);
+    // console.log(program);
     return escodegen.generate(program).fontsize(4);
 }
 
@@ -139,11 +139,18 @@ function IfStatement(statement) {
     current_locals = cloneDeep(old_locals);
     let consequent = Statement(statement.consequent);
 
-    true_path = !true_path;
+    
+    let alternate = null;
     current_locals = cloneDeep(old_locals);
-    let alternate = Statement(statement.alternate)
-
+    if(statement.alternate !== null){
+        true_path = !true_path;
+        alternate = Statement(statement.alternate)
+    }
+    else{
+        true_path = true;
+    }
     old_locals = cloneDeep(new_locals);
+    current_locals = cloneDeep(new_locals);
 
 
     let node = {
