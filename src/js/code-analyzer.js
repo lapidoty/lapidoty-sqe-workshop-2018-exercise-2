@@ -15,11 +15,10 @@ const parseCode = (codeToParse) => {
     return esprima.parseScript(codeToParse);
 };
 
-
 export function traverse(jsonObj) {
-   // console.log(jsonObj);
+    console.log(jsonObj);
     let program = Program(jsonObj);
-    // console.log(program);
+    console.log(program);
     return escodegen.generate(program).fontsize(4);
 }
 
@@ -33,16 +32,16 @@ function Program(program) {
 
 /*********** Statements ***********/
 function StatementListItem(body) {
-    
+
     return body.map((p) => Statement(p));
 }
 
 function Statement(statement) {
     switch (statement.type) {
-    case 'ExpressionStatement': return ExpressionStatement(statement);
-    case 'ReturnStatement': return ReturnStatement(statement);
-    case 'BlockStatement': return BlockStatement(statement);
-    default: return ConditionStatement(statement);
+        case 'ExpressionStatement': return ExpressionStatement(statement);
+        case 'ReturnStatement': return ReturnStatement(statement);
+        case 'BlockStatement': return BlockStatement(statement);
+        default: return ConditionStatement(statement);
     }
 }
 
@@ -64,7 +63,7 @@ function DeclarationStatement(statement) {
 }
 
 function FunctionDeclaration(functionDeclaration) {
-   
+
     return {
         type: 'FunctionDeclaration',
         id: Identifier(functionDeclaration.id),
@@ -93,6 +92,7 @@ function handleDeclarations(declarations) {
 }
 
 function handleOneDeclartion(declaration) {
+
     new_locals.set(declaration.id.name, declaration.init);
     old_locals = cloneDeep(new_locals);
 }
@@ -110,43 +110,38 @@ function VariableDeclarator(declaration) {
 
 function AssignmentExpression(expression) {
     isAssignment = true;
+    let left = Expression(expression.left);
+    isAssignment = false;
+    let right = Expression(expression.right);
     let ass = {
         type: 'AssignmentExpression',
         operator: expression.operator,
-        left: Expression(expression.left),
-        right: Expression(expression.right),
+        left: left,
+        right: right,
     };
 
-    if (isLocal(ass.left.name)) {
-        if (true_path) {
-            new_locals.set(ass.left.name, ass.right);
-        }
-
-        current_locals.set(ass.left.name, ass.right);
-
-    }
-    else {
-        return ass;
-    }
-
+    if (ass.left.type === "MemberExpression") handle_array(ass);
+    else if (isLocal(ass.left.name)) handle_normal(ass);
+    else return ass;
 }
 
 function IfStatement(statement) {
 
     let test = Expression(statement.test);
     true_path = evaluate(test);
+    true_path = handle_string(true_path)
     let color = (true_path === true) ? "green" : "red"
     current_locals = cloneDeep(old_locals);
     let consequent = Statement(statement.consequent);
 
-    
+
     let alternate = null;
     current_locals = cloneDeep(old_locals);
-    if(statement.alternate !== null){
+    if (statement.alternate !== null) {
         true_path = !true_path;
         alternate = Statement(statement.alternate)
     }
-    else{
+    else {
         true_path = true;
     }
     old_locals = cloneDeep(new_locals);
@@ -195,7 +190,6 @@ function ForStatement(statement) {
     }
 }
 
-
 function ExpressionStatement(statement) {
 
     let s = {
@@ -207,7 +201,6 @@ function ExpressionStatement(statement) {
         return s;
     else return null;
 }
-
 
 function ReturnStatement(statement) {
     return {
@@ -234,6 +227,7 @@ function RecurseiveExpression(expression) {
         case 'MemberExpression': return MemberExpression(expression);
         case 'UnaryExpression': return UnaryExpression(expression);
         case 'UpdateExpression': return UpdateExpression(expression);
+        case 'ArrayExpression': return ArrayExpression(expression);
         default: null;
     }
 }
@@ -243,14 +237,12 @@ function Identifier(expression) {
     else {
         let value = current_locals.get(expression.name);
         if (value === undefined || isAssignment) {
-            if (isAssignment) isAssignment = false;
             return {
                 type: 'Identifier',
                 name: expression.name,
             };
         }
-        else
-            return value;
+        else { return value; }
     }
 }
 
@@ -271,13 +263,30 @@ function BinaryExpression(expression) {
     };
 }
 
-function MemberExpression(expression) {
+function ArrayExpression(expression) {
     return {
+        type: 'ArrayExpression',
+        elements: filtered(expression.elements.map((s) => Expression(s)))
+    };
+}
+
+function MemberExpression(expression) {
+    let node = {
         type: 'MemberExpression',
         computed: expression.boolean,
         object: Expression(expression.object),
         property: Expression(expression.property),
     }
+    let array = [];
+    let value;
+
+    if (node.object.type !== "ArrayExpression") array = current_locals.get(node.object.name);
+    else array = node.object;
+
+    value = array.elements[evaluate(node.property)];
+
+    if (isAssignment) return node;
+    else return value;
 }
 
 function UnaryExpression(expression) {
@@ -298,10 +307,7 @@ function UpdateExpression(expression) {
     }
 }
 
-
-
 //*********** Utils ***********/
-
 
 function FunctionParameter(params) {
 
@@ -334,8 +340,36 @@ function isLocal(name) {
     return new_locals.get(name) !== undefined;
 }
 
+function handle_string(t) {
+
+    if (t == "true") {
+        return true;
+    }
+    else if (t == "false") {
+        return false;
+    }
+    else {
+        return t;
+    }
+}
+
+function handle_normal(ass) {
+    if (true_path) new_locals.set(ass.left.name, ass.right);
+
+    current_locals.set(ass.left.name, ass.right);
+}
+
+function handle_array(ass) {
+    let name = ass.left.object.name;
+    let index = evaluate(ass.left.property);
+    let array = current_locals.get(name);
+    array.elements[index] = ass.right;
+    new_locals.set(name, array);
+    current_locals.set(name, array);
+}
 
 //*********** Eval and Substition /***********/
+
 function evaluate(exp) {
     subMode = true;
     let to_return = astEval(Expression(exp));
@@ -353,34 +387,6 @@ function vector_substition(expression) {
         };
     }
 }
-
-/*
- function try_to_eval(exp){
-    console.log(exp)
-    let to_ret;
-    let value;
-    try {
-         value = astEval(exp);
-    }
-    catch {
-        to_ret = exp
-    }
-    finally{
-    if(typeof(value) === "number" || typeof(value) === "boolean" || typeof(value) === "string" ){
-        to_ret = {
-            type: 'Literal',
-            value: value,
-            raw: "" + value + "",
-        };
-    }
-    else{
-        to_ret = exp
-    }
-        return to_ret;
-    
-    }
-}
-*/
 
 export { parseCode };
 export { input_vector };
