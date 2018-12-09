@@ -128,8 +128,7 @@ function AssignmentExpression(expression) {
 function IfStatement(statement) {
 
     let test = Expression(statement.test);
-    true_path = evaluate(test);
-    true_path = handle_string(true_path)
+    true_path = (true_path === true) ? handle_string(evaluate(test)) : true_path;
     let color = (true_path === true) ? "green" : "red"
     current_locals = cloneDeep(old_locals);
     let consequent = Statement(statement.consequent);
@@ -138,7 +137,6 @@ function IfStatement(statement) {
     let alternate = null;
     current_locals = cloneDeep(old_locals);
     if (statement.alternate !== null) {
-        true_path = !true_path;
         alternate = Statement(statement.alternate)
     }
     else {
