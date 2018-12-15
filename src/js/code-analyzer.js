@@ -15,10 +15,18 @@ const parseCode = (codeToParse) => {
     return esprima.parseScript(codeToParse);
 };
 
-export function traverse(jsonObj) {
-    console.log(jsonObj);
+export function to_test(jsonObj , vector) { 
+    input_vector = new Map(vector);
+    //console.log(jsonObj);
     let program = Program(jsonObj);
-    console.log(program);
+    //console.log(program);
+    return escodegen.generate(program).trim();
+}
+
+export function traverse(jsonObj) {
+    //console.log(jsonObj);
+    let program = Program(jsonObj);
+    //console.log(program);
     return escodegen.generate(program).fontsize(4);
 }
 
@@ -38,27 +46,26 @@ function StatementListItem(body) {
 
 function Statement(statement) {
     switch (statement.type) {
-        case 'ExpressionStatement': return ExpressionStatement(statement);
-        case 'ReturnStatement': return ReturnStatement(statement);
-        case 'BlockStatement': return BlockStatement(statement);
-        default: return ConditionStatement(statement);
+    case 'ExpressionStatement': return ExpressionStatement(statement);
+    case 'ReturnStatement': return ReturnStatement(statement);
+    case 'BlockStatement': return BlockStatement(statement);
+    default: return ConditionStatement(statement);
     }
 }
 
 function ConditionStatement(statement) {
     switch (statement.type) {
-        case 'IfStatement': return IfStatement(statement);
-        case 'WhileStatement': return WhileStatement(statement);
-        case 'ForStatement': return ForStatement(statement);
-        default: return DeclarationStatement(statement);
+    case 'IfStatement': return IfStatement(statement);
+    case 'WhileStatement': return WhileStatement(statement);
+    case 'ForStatement': return ForStatement(statement);
+    default: return DeclarationStatement(statement);
     }
 }
 
 function DeclarationStatement(statement) {
     switch (statement.type) {
-        case 'VariableDeclaration': return VariableDeclaration(statement);
-        case 'FunctionDeclaration': return FunctionDeclaration(statement);
-        default: null;
+    case 'VariableDeclaration': return VariableDeclaration(statement);
+    case 'FunctionDeclaration': return FunctionDeclaration(statement);
     }
 }
 
@@ -81,7 +88,7 @@ function VariableDeclaration(declaration) {
         type: 'VariableDeclaration',
         declarations: VariableDeclarator(declaration.declarations),
         kind: declaration.kind,
-    }
+    };
     handleDeclarations(declarations);
     return null;
 }
@@ -103,7 +110,7 @@ function VariableDeclarator(declaration) {
             type: 'VariableDeclarator',
             id: Identifier(d.id),
             init: Expression(d.init),
-        }
+        };
     });
 
 }
@@ -119,50 +126,37 @@ function AssignmentExpression(expression) {
         left: left,
         right: right,
     };
-
-    if (ass.left.type === "MemberExpression") handle_array(ass);
+    if (ass.left.type === 'MemberExpression') handle_array(ass);
     else if (isLocal(ass.left.name)) handle_normal(ass);
-    else return ass;
+    else { input_vector.set(ass.left.name, escodegen.generate(esprima.parse(evaluate(ass.right).toString()).body[0].expression)); return ass;}
 }
 
 function IfStatement(statement) {
-
     let test = Expression(statement.test);
     true_path = (true_path === true) ? handle_string(evaluate(test)) : true_path;
-    let color = (true_path === true) ? "green" : "red"
+    let color = (true_path === true) ? 'green' : 'red';
     current_locals = cloneDeep(old_locals);
-    let consequent = Statement(statement.consequent);
-
-
-    let alternate = null;
+    let consequent = Statement(statement.consequent); let alternate = null;
     current_locals = cloneDeep(old_locals);
-    if (statement.alternate !== null) {
-        alternate = Statement(statement.alternate)
-    }
-    else {
-        true_path = true;
-    }
+    if (statement.alternate !== null) {true_path = !true_path; alternate = Statement(statement.alternate); }
+    else {true_path = true;}
     old_locals = cloneDeep(new_locals);
     current_locals = cloneDeep(new_locals);
-
-
     let node = {
         type: 'IfStatement',
         test: test,
         consequent: consequent,
         alternate: alternate,
         color: color
-    }
-
+    };
     return node;
-
 }
 
 function BlockStatement(statement) {
     return {
         type: 'BlockStatement',
         body: filtered(statement.body.map((s) => Statement(s))),
-    }
+    };
 }
 
 function WhileStatement(statement) {
@@ -175,7 +169,7 @@ function WhileStatement(statement) {
         type: 'WhileStatement',
         test: test,
         body: Statement(statement.body),
-    }
+    };
 }
 
 function ForStatement(statement) {
@@ -185,7 +179,7 @@ function ForStatement(statement) {
         test: Expression(statement.test),
         update: Expression(statement.update),
         body: Statement(statement.body),
-    }
+    };
 }
 
 function ExpressionStatement(statement) {
@@ -194,7 +188,7 @@ function ExpressionStatement(statement) {
         type: 'ExpressionStatement',
         expression: Expression(statement.expression),
         directive: statement.string,
-    }
+    };
     if (s.expression != null)
         return s;
     else return null;
@@ -204,7 +198,7 @@ function ReturnStatement(statement) {
     return {
         type: 'ReturnStatement',
         argument: Expression(statement.argument),
-    }
+    };
 }
 
 
@@ -212,21 +206,26 @@ function ReturnStatement(statement) {
 
 function Expression(expression) {
     switch (expression.type) {
-        case 'Identifier': return Identifier(expression);
-        case 'Literal': return Literal(expression);
-        case 'AssignmentExpression': return AssignmentExpression(expression);
-        default: return RecurseiveExpression(expression);
+    case 'Identifier': return Identifier(expression);
+    case 'Literal': return Literal(expression);
+    case 'AssignmentExpression': return AssignmentExpression(expression);
+    default: return RecurseiveExpression(expression);
     }
 }
 
 function RecurseiveExpression(expression) {
     switch (expression.type) {
-        case 'BinaryExpression': return BinaryExpression(expression);
-        case 'MemberExpression': return MemberExpression(expression);
-        case 'UnaryExpression': return UnaryExpression(expression);
-        case 'UpdateExpression': return UpdateExpression(expression);
-        case 'ArrayExpression': return ArrayExpression(expression);
-        default: null;
+    case 'BinaryExpression': return BinaryExpression(expression);
+    case 'MemberExpression': return MemberExpression(expression);
+    case 'UnaryExpression': return UnaryExpression(expression);
+    default: return split(expression);
+    }
+}
+
+function split(expression) {
+    switch (expression.type) {
+    case 'UpdateExpression': return UpdateExpression(expression);
+    case 'ArrayExpression': return ArrayExpression(expression);
     }
 }
 
@@ -271,18 +270,19 @@ function ArrayExpression(expression) {
 function MemberExpression(expression) {
     let node = {
         type: 'MemberExpression',
-        computed: expression.boolean,
+        computed: expression.computed,
         object: Expression(expression.object),
         property: Expression(expression.property),
+    };
+    let array = []; let value;
+    if (node.object.type !== 'ArrayExpression'){ 
+        array = current_locals.get(node.object.name); 
+        if( array === undefined ) return node;
     }
-    let array = [];
-    let value;
-
-    if (node.object.type !== "ArrayExpression") array = current_locals.get(node.object.name);
     else array = node.object;
-
+    let saveMode = subMode;
     value = array.elements[evaluate(node.property)];
-
+    subMode = saveMode;
     if (isAssignment) return node;
     else return value;
 }
@@ -293,7 +293,7 @@ function UnaryExpression(expression) {
         operator: expression.operator,
         argument: Expression(expression.argument),
         prefix: expression.prefix,
-    }
+    };
 }
 
 function UpdateExpression(expression) {
@@ -302,7 +302,7 @@ function UpdateExpression(expression) {
         operator: expression.operator,
         argument: Expression(expression.argument),
         prefix: expression.boolean
-    }
+    };
 }
 
 //*********** Utils ***********/
@@ -312,19 +312,17 @@ function FunctionParameter(params) {
     return params.map((p) => Param(p));
 }
 
-function init(init) {
+export function init(init) {
     switch (init.type) {
-        case 'Expression': return Expression(init);
-        case 'VariableDeclaration': return VariableDeclaration(init);
-        default: null;
+    case 'Expression': return Expression(init);
+    default: null;
     }
 }
 
 function Param(param) {
 
     switch (param.type) {
-        case 'Identifier': return Identifier(param);
-        default: null;
+    case 'Identifier': return Identifier(param);
     }
 }
 
@@ -338,12 +336,12 @@ function isLocal(name) {
     return new_locals.get(name) !== undefined;
 }
 
-function handle_string(t) {
+export function handle_string(t) {
 
-    if (t == "true") {
+    if (t == 'true') {
         return true;
     }
-    else if (t == "false") {
+    else if (t == 'false') {
         return false;
     }
     else {
@@ -370,21 +368,19 @@ function handle_array(ass) {
 
 function evaluate(exp) {
     subMode = true;
+    //console.log(exp)
     let to_return = astEval(Expression(exp));
     subMode = false;
+    //console.log(to_return)
+    //console.log(to_return)
     return to_return;
 }
 
 function vector_substition(expression) {
-    if (!isLocal(expression.name)) {
-        let value = input_vector.get(expression.name);
-        return {
-            type: 'Literal',
-            value: value,
-            raw: "" + value + "",
-        };
-    }
+    let value = input_vector.get(expression.name);
+    return esprima.parse(value).body[0].expression;
 }
 
 export { parseCode };
 export { input_vector };
+
