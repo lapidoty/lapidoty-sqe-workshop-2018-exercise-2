@@ -77,8 +77,7 @@ describe('The javascript parser', () => {
                 }
             }`), [["x", "1"], ["y", "2"], ["z", "3"]]).replace(/\s+/g, ''),
             //res:
-            `function foo(x, y, z) {\n    z = z + 5;\n    <font size=\"5\"><b><font color=\"red\">if (</font></b></font><font size=\"5\"><b><font color=\"red\">x + 1 + y < z</font></b></font><font size=\"5\"><b><font color=\"red\">)</font></b></font> {\n
-                return x + y + z + (x + 1 + (x + 1 + y) + x + 5 + 5);\n    } else <font size=\"5\"><b><font color=\"green\">if (</font></b></font><font size=\"5\"><b><font color=\"green\">x + 1 + y < z * 2</font></b></font><font size=\"5\"><b><font color=\"green\">)</font></b></font> {\n        return x + y + z + (x + 1 + (x + 1 + y) + x + 5 + x + 5);\n    } else {\n        return x + y + z + (x + 1 + (x + 1 + y) + x + 5 + z + 5);\n    }\n}`.replace(/\s+/g, '')
+            `"functionfoo(x,y,z){z=z+5;if(x+1+y<z){returnx+y+z+(x+1+(x+1+y)+x+5+5);}elseif(x+1+y<z*2){returnx+y+z+(x+1+(x+1+y)+x+5+x+5);}else{returnx+y+z+(x+1+(x+1+y)+x+5+z+5);}}`.replace(/\s+/g, '')
         );
     })
 });
