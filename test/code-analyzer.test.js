@@ -50,7 +50,7 @@ describe('The javascript parser', () => {
                 }
             }`), [["x", "1"], ["y", "2"], ["z", "3"]]),
             //res:
-            `function foo(x, y, z) {\n    <font size=\"5\"><b><font color=\"red\">if (</font></b></font><font size=\"5\"><b><font color=\"red\">x + 1 + y < z</font></b></font><font size=\"5\"><b><font color=\"red\">)</font></b></font> {\n        return x + y + z + (x + 1 + (x + 1 + y) + 5);\n    } else <font size=\"5\"><b><font color=\"green\">if (</font></b></font><font size=\"5\"><b><font color=\"green\">x + 1 + y < z * 2</font></b></font><font size=\"5\"><b><font color=\"green\">)</font></b></font> {\n        return x + y + z + (x + 1 + (x + 1 + y) + x + 5);\n    } else {\n        return x + y + z + (x + 1 + (x + 1 + y) + z + 5);\n    }\n}`
+            `function foo(x, y, z) {\n    if (x + 1 + y < z) {\n        return x + y + z + (x + 1 + (x + 1 + y) + 5);\n    } else if (x + 1 + y < z * 2) {\n        return x + y + z + (x + 1 + (x + 1 + y) + x + 5);\n    } else {\n        return x + y + z + (x + 1 + (x + 1 + y) + z + 5);\n    }\n}`
         );
     })
 });
@@ -77,7 +77,7 @@ describe('The javascript parser', () => {
                 }
             }`), [["x", "1"], ["y", "2"], ["z", "3"]]).replace(/\s+/g, ''),
             //res:
-            `"functionfoo(x,y,z){z=z+5;if(x+1+y<z){returnx+y+z+(x+1+(x+1+y)+x+5+5);}elseif(x+1+y<z*2){returnx+y+z+(x+1+(x+1+y)+x+5+x+5);}else{returnx+y+z+(x+1+(x+1+y)+x+5+z+5);}}`.replace(/\s+/g, '')
+            `functionfoo(x,y,z){z=z+5;if(x+1+y<z){returnx+y+z+(x+1+(x+1+y)+x+5+5);}elseif(x+1+y<z*2){returnx+y+z+(x+1+(x+1+y)+x+5+x+5);}else{returnx+y+z+(x+1+(x+1+y)+x+5+z+5);}}`.replace(/\s+/g, '')
         );
     })
 });
@@ -134,7 +134,7 @@ describe('The javascript parser', () => {
                 else return arr[1];
             }`), [["x", "true"], ["y", "false"]]).replace(/\s+/g, ''),
             //res:
-            `functionfoo(x,y){<fontsize=\"5\"><b><fontcolor=\"red\">if(</font></b></font><fontsize=\"5\"><b><fontcolor=\"red\">x</font></b></font><fontsize=\"5\"><b><fontcolor=\"red\">)</font></b></font>{returnx;}elsereturny;}`.replace(/\s+/g, '')
+            `functionfoo(x,y){if(x){returnx;}elsereturny;}`.replace(/\s+/g, '')
         );
     })
 });
@@ -151,7 +151,7 @@ describe('The javascript parser', () => {
                 return arr[1];
             }`), [["x", "true"], ["y", "false"]]).replace(/\s+/g, ''),
             //res:
-            `functionfoo(x,y){<fontsize=\"5\"><b><fontcolor=\"green\">if(</font></b></font><fontsize=\"5\"><b><fontcolor=\"green\">x</font></b></font><fontsize=\"5\"><b><fontcolor=\"green\">)</font></b></font>{returnx;}returny;}`.replace(/\s+/g, '')
+            `functionfoo(x,y){if(x){returnx;}returny;}`.replace(/\s+/g, '')
         );
     })
 });
@@ -178,7 +178,7 @@ describe('The javascript parser', () => {
                 return -1;
             }`), [["X", "2"], ["V", "3"] , ["n", "4"]]).replace(/\s+/g, ''),
             //res:
-            `functionbinarySearch(X,V,n){while(0<=n-1){<fontsize=\"5\"><b><fontcolor=\"red\">if(</font></b></font><fontsize=\"5\"><b><fontcolor=\"red\">X<V[(0+0)/2]</font></b></font><fontsize=\"5\"><b><fontcolor=\"red\">)</font></b></font>{}else<fontsize=\"5\"><b><fontcolor=\"red\">if(</font></b></font><fontsize=\"5\"><b><fontcolor=\"red\">X>V[0]</font></b></font><fontsize=\"5\"><b><fontcolor=\"red\">)</font></b></font>{}elsereturn0;}return-1;}`.replace(/\s+/g, '')
+            `functionbinarySearch(X,V,n){while(0<=n-1){if(X<V[(0+0)/2]){}elseif(X>V[0]){}elsereturn0;}return-1;}`.replace(/\s+/g, '')
         );
     })
 });

@@ -1605,9 +1605,9 @@
             var result, bodyFlags, semicolonOptional, that = this;
             withIndent(function () {
                 result = [
-                    'if' + space + '(',
-                    that.generateExpression(stmt.test, Precedence.Sequence, E_TTT),
-                    ')'
+                    ('if' + space + '(').fontcolor(stmt.color).bold().fontsize(5),
+                    that.generateExpression(stmt.test, Precedence.Sequence, E_TTT).fontcolor(stmt.color).bold().fontsize(5),
+                    (')').fontcolor(stmt.color).bold().fontsize(5)
                 ];
             });
             semicolonOptional = flags & F_SEMICOLON_OPT;
