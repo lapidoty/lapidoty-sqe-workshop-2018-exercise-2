@@ -1,5 +1,6 @@
 import * as esprima from 'esprima';
 import * as escodegen from 'escodegen';
+import * as local_escodegen from '../../local_escodegen';
 const cloneDeep = require('clone-deep');
 var astEval = require('static-eval');
 
@@ -20,14 +21,14 @@ export function to_test(jsonObj , vector) {
     //console.log(jsonObj);
     let program = Program(jsonObj);
     //console.log(program);
-    return escodegen.generate(program).trim();
+    return local_escodegen.generate(program).trim();
 }
 
 export function traverse(jsonObj) {
     //console.log(jsonObj);
     let program = Program(jsonObj);
     //console.log(program);
-    return escodegen.generate(program).fontsize(4);
+    return local_escodegen.generate(program).fontsize(4);
 }
 
 function Program(program) {
